@@ -1,10 +1,15 @@
 #include <stdlib.h>
+
+#define NCURSES_WIDECHAR 1
 #include <ncurses.h>
 #include <time.h>
 #include <math.h>
 
-#define EMPTY_CHAR '.'
-#define GRAPH_CHAR '@'
+#include <locale.h>
+
+#define GRAPH_CHAR L"⬣"
+
+#define EMPTY_CHAR L"⸱"
 
 void sleep_ms(int milliseconds) {
 #if _POSIX_C_SOURCE >= 199309L
@@ -18,11 +23,9 @@ void sleep_ms(int milliseconds) {
 }
 
 void draw_grid(size_t rows, size_t cols) {
-#if EMPTY_CHAR != ' '
     for (size_t x = 0; x < cols; ++x)
         for (size_t y = 0; y < rows; ++y)
-            mvaddch(y, x, EMPTY_CHAR);
-#endif
+            mvaddwstr(y, x, EMPTY_CHAR);
 }
 
 void draw_elem(
@@ -30,10 +33,10 @@ void draw_elem(
     size_t* trail_x, size_t* trail_y,
     size_t* trail_index, size_t trail_length
 ) {
-    attron(COLOR_PAIR(2)); mvaddch(trail_y[*trail_index], trail_x[*trail_index], EMPTY_CHAR); attroff(COLOR_PAIR(2));
+    attron(COLOR_PAIR(2)); mvaddwstr(trail_y[*trail_index], trail_x[*trail_index], EMPTY_CHAR); attroff(COLOR_PAIR(2));
 
     trail_x[*trail_index] = x; trail_y[*trail_index] = y;
-    attron(COLOR_PAIR(1)); mvaddch(y, x, GRAPH_CHAR | A_BOLD); attroff(COLOR_PAIR(1));
+    attron(COLOR_PAIR(1)); mvaddwstr(y, x, GRAPH_CHAR); attroff(COLOR_PAIR(1));
 
     *trail_index = (*trail_index + 1) % trail_length;
 }
@@ -71,6 +74,8 @@ void draw_bounce(
 
 
 int main(void) {
+    setlocale(LC_ALL, "");
+
     size_t rows = 0;
     size_t cols = 0;
 
